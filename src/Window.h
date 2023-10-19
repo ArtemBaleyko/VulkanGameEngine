@@ -15,6 +15,9 @@ public:
     Window& operator=(const Window&) = delete;
 
     inline bool shouldClose() const { return glfwWindowShouldClose(_window); }
+    inline VkExtent2D getExtent() const { return {_width, _height}; }
+
+    void createWindowSurface(VkInstance instance, VkSurfaceKHR* surface);
 
 private:
     void initWindow();

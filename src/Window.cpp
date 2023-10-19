@@ -1,5 +1,7 @@
 #include "Window.h"
 
+#include <stdexcept>
+
 namespace vge {
 Window::Window(const std::string& name, uint32_t width, uint32_t height)
     : _name(name)
@@ -11,6 +13,12 @@ Window::Window(const std::string& name, uint32_t width, uint32_t height)
 Window::~Window() {
     glfwDestroyWindow(_window);
     glfwTerminate();
+}
+
+void Window::createWindowSurface(VkInstance instance, VkSurfaceKHR* surface) {
+    if (glfwCreateWindowSurface(instance, _window, nullptr, surface) != VK_SUCCESS) {
+        throw std::runtime_error("Failed to create window surface");
+    }
 }
 
 void Window::initWindow() {
