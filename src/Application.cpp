@@ -5,6 +5,7 @@
 
 namespace vge {
 Application::Application() {
+    loadModels();
     createPipelineLayout();
     createPipeline();
     createCommandBuffers();
@@ -20,6 +21,12 @@ void Application::run() {
 
     vkDeviceWaitIdle(_device.getVkDevice());
 }
+
+void Application::loadModels() {
+    std::vector<Model::Vertex> vertices = {{{0.0f, -0.5f}}, {{0.5f, 0.5f}}, {{-0.5f, 0.5f}}};
+    _model = std::make_unique<Model>(_device, vertices);
+}
+
 void Application::createPipelineLayout() {
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -55,7 +62,7 @@ void Application::createCommandBuffers() {
         throw std::runtime_error("Failed to create command buffers");
     }
 
-    for (int i = 0; i < _commandBuffers.size(); i++) {
+    for (size_t i = 0; i < _commandBuffers.size(); i++) {
         VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
@@ -80,7 +87,8 @@ void Application::createCommandBuffers() {
         vkCmdBeginRenderPass(_commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
         _pipeline->bind(_commandBuffers[i]);
-        vkCmdDraw(_commandBuffers[i], 3, 1, 0, 0);
+        _model->bind(_commandBuffers[i]);
+        _model->draw(_commandBuffers[i]);
 
         vkCmdEndRenderPass(_commandBuffers[i]);
 

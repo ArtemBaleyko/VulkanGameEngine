@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "Device.h"
+#include "Model.h"
 #include "Pipeline.h"
 #include "SwapChain.h"
 #include "Window.h"
@@ -20,6 +21,7 @@ public:
     void run();
 
 private:
+    void loadModels();
     void createPipelineLayout();
     void createPipeline();
     void createCommandBuffers();
@@ -32,5 +34,6 @@ private:
     std::unique_ptr<Pipeline> _pipeline;
     VkPipelineLayout _pipelineLayout;
     std::vector<VkCommandBuffer> _commandBuffers;
+    std::unique_ptr<Model> _model;
 };
 }  // namespace vge

@@ -23,10 +23,10 @@ private:
     void initWindow();
 
 private:
-    GLFWwindow* _window;
+    std::string _name;
     uint32_t _width;
     uint32_t _height;
 
-    std::string _name;
+    GLFWwindow* _window;
 };
 }  // namespace vge
