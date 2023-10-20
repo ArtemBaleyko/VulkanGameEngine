@@ -3,7 +3,17 @@
 #include <array>
 #include <stdexcept>
 
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
+
 namespace vge {
+
+struct PushConstantData {
+    glm::vec2 offset;
+    alignas(16) glm::vec3 color;
+};
+
 Application::Application() {
     loadModels();
     createPipelineLayout();
@@ -32,12 +42,17 @@ void Application::loadModels() {
 }
 
 void Application::createPipelineLayout() {
+    VkPushConstantRange pushConstantRange{};
+    pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+    pushConstantRange.offset = 0;
+    pushConstantRange.size = sizeof(PushConstantData);
+
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount = 0;
     pipelineLayoutInfo.pSetLayouts = nullptr;
-    pipelineLayoutInfo.pushConstantRangeCount = 0;
-    pipelineLayoutInfo.pPushConstantRanges = nullptr;
+    pipelineLayoutInfo.pushConstantRangeCount = 1;
+    pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
     if (vkCreatePipelineLayout(_device.getVkDevice(), &pipelineLayoutInfo, nullptr, &_pipelineLayout) !=
         VK_SUCCESS) {
@@ -51,7 +66,8 @@ void Application::createPipeline() {
     pipelineConfig.renderPass = _swapChain->getRenderPass();
     pipelineConfig.pipelineLayout = _pipelineLayout;
 
-    _pipeline = std::make_unique<Pipeline>("shaders/vert.spv", "shaders/frag.spv", _device, pipelineConfig);
+    _pipeline = std::make_unique<Pipeline>(
+        "shaders/shader.vert.spv", "shaders/shader.frag.spv", _device, pipelineConfig);
 }
 void Application::createCommandBuffers() {
     _commandBuffers.resize(_swapChain->getImageCount());
@@ -166,7 +182,21 @@ void Application::recordCommandBuffer(int imageIndex) {
 
     _pipeline->bind(_commandBuffers[imageIndex]);
     _model->bind(_commandBuffers[imageIndex]);
-    _model->draw(_commandBuffers[imageIndex]);
+
+    for (int i = 0; i < 4; i++) {
+        PushConstantData data;
+        data.offset = {0.0f, -0.4f + i * 0.25f};
+        data.color = {0.0f, 0.0f, 0.2f + 0.2f * i};
+
+        vkCmdPushConstants(_commandBuffers[imageIndex],
+                           _pipelineLayout,
+                           VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                           0,
+                           sizeof(PushConstantData),
+                           &data);
+
+        _model->draw(_commandBuffers[imageIndex]);
+    }
 
     vkCmdEndRenderPass(_commandBuffers[imageIndex]);
 
