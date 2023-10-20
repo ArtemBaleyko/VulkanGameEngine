@@ -7,14 +7,18 @@
 namespace vge {
 
 struct PipelineConfig {
-    VkViewport viewport;
-    VkRect2D scissor;
+    PipelineConfig(const PipelineConfig&) = delete;
+    PipelineConfig& operator=(const PipelineConfig&) = delete;
+
+    VkPipelineViewportStateCreateInfo viewportInfo;
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
     VkPipelineRasterizationStateCreateInfo rasterizationInfo;
     VkPipelineMultisampleStateCreateInfo multisampleInfo;
     VkPipelineColorBlendAttachmentState colorBlendAttachment;
     VkPipelineColorBlendStateCreateInfo colorBlendInfo;
     VkPipelineDepthStencilStateCreateInfo depthStencilInfo;
+    std::vector<VkDynamicState> dynamicStateEnables;
+    VkPipelineDynamicStateCreateInfo dynamicStateInfo;
     VkPipelineLayout pipelineLayout = nullptr;
     VkRenderPass renderPass = nullptr;
     uint32_t subpass = 0;
@@ -32,7 +36,7 @@ public:
 
     void bind(VkCommandBuffer commandBuffer);
 
-    static PipelineConfig getDefaultPipelineConfigInfo(uint32_t width, uint32_t height);
+    static void getDefaultPipelineConfigInfo(PipelineConfig& configInfo);
 
 private:
     void createGraphicsPipeline(const std::string& vertShaderPath, const std::string& fragShaderPath,

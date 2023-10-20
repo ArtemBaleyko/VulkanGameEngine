@@ -25,12 +25,16 @@ private:
     void createPipelineLayout();
     void createPipeline();
     void createCommandBuffers();
+    void freeCommandBuffers();
     void drawFrame();
+
+    void recreateSwapChain();
+    void recordCommandBuffer(int imageIndex);
 
 private:
     Window _window{"Vulkan Game Engine", 800, 600};
     Device _device{_window};
-    SwapChain _swapChain{_device, _window.getExtent()};
+    std::unique_ptr<SwapChain> _swapChain;
     std::unique_ptr<Pipeline> _pipeline;
     VkPipelineLayout _pipelineLayout;
     std::vector<VkCommandBuffer> _commandBuffers;

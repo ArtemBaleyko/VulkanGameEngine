@@ -1,13 +1,12 @@
 #pragma once
 
-#include "Device.h"
-
-// vulkan headers
 #include <vulkan/vulkan.h>
 
-// std lib headers
+#include <memory>
 #include <string>
 #include <vector>
+
+#include "Device.h"
 
 namespace vge {
 
@@ -16,6 +15,7 @@ public:
     static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
     SwapChain(Device &deviceRef, VkExtent2D windowExtent);
+    SwapChain(Device &deviceRef, VkExtent2D windowExtent, std::shared_ptr<SwapChain> previous);
     ~SwapChain();
 
     SwapChain(const SwapChain &) = delete;
@@ -39,6 +39,7 @@ public:
     VkResult submitCommandBuffers(const VkCommandBuffer *buffers, uint32_t *imageIndex);
 
 private:
+    void init();
     void createSwapChain();
     void createImageViews();
     void createDepthResources();
@@ -51,6 +52,7 @@ private:
     VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes);
     VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities);
 
+private:
     VkFormat _swapChainImageFormat;
     VkExtent2D _swapChainExtent;
 
@@ -73,6 +75,8 @@ private:
     std::vector<VkFence> _inFlightFences;
     std::vector<VkFence> _imagesInFlight;
     size_t _currentFrame = 0;
+
+    std::shared_ptr<SwapChain> _oldSwapChain;
 };
 
 }  // namespace vge

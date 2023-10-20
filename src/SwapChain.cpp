@@ -14,6 +14,19 @@ namespace vge {
 SwapChain::SwapChain(Device &deviceRef, VkExtent2D extent)
     : _device{deviceRef}
     , _windowExtent{extent} {
+    init();
+}
+
+SwapChain::SwapChain(Device &deviceRef, VkExtent2D extent, std::shared_ptr<SwapChain> previous)
+    : _device{deviceRef}
+    , _windowExtent{extent}
+    , _oldSwapChain{previous} {
+    init();
+
+    _oldSwapChain = nullptr;
+}
+
+void SwapChain::init() {
     createSwapChain();
     createImageViews();
     createRenderPass();
@@ -155,7 +168,7 @@ void SwapChain::createSwapChain() {
     createInfo.presentMode = presentMode;
     createInfo.clipped = VK_TRUE;
 
-    createInfo.oldSwapchain = VK_NULL_HANDLE;
+    createInfo.oldSwapchain = _oldSwapChain ? _oldSwapChain->_swapChain : VK_NULL_HANDLE;
 
     if (vkCreateSwapchainKHR(_device.getVkDevice(), &createInfo, nullptr, &_swapChain) != VK_SUCCESS) {
         throw std::runtime_error("failed to create swap chain!");
@@ -350,7 +363,7 @@ void SwapChain::createSyncObjects() {
 VkSurfaceFormatKHR SwapChain::chooseSwapSurfaceFormat(
     const std::vector<VkSurfaceFormatKHR> &availableFormats) {
     for (const auto &availableFormat : availableFormats) {
-        if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM &&
+        if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
             availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
             return availableFormat;
         }
