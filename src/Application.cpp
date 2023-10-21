@@ -6,16 +6,18 @@
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
 
 namespace vge {
 
 struct PushConstantData {
+    glm::mat2 transform{1.0f};
     glm::vec2 offset;
     alignas(16) glm::vec3 color;
 };
 
 Application::Application() {
-    loadModels();
+    loadGameObjects();
     createPipelineLayout();
     recreateSwapChain();
     createCommandBuffers();
@@ -32,13 +34,21 @@ void Application::run() {
     vkDeviceWaitIdle(_device.getVkDevice());
 }
 
-void Application::loadModels() {
+void Application::loadGameObjects() {
     std::vector<Model::Vertex> vertices = {
         {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
         {{0.5f, 0.5f},  {0.0f, 1.0f, 0.0f}},
         {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
     };
-    _model = std::make_unique<Model>(_device, vertices);
+
+    auto model = std::make_shared<Model>(_device, vertices);
+    auto triangle = GameObject::createGameObject();
+    triangle.model = model;
+    triangle.color = {0.1f, 0.8f, 0.1f};
+    triangle.transform2D.translation.x = 0.2f;
+    triangle.transform2D.rotation = 0.25f * glm::two_pi<float>();
+
+    _gameObjects.push_back(std::move(triangle));
 }
 
 void Application::createPipelineLayout() {
@@ -118,6 +128,28 @@ void Application::drawFrame() {
         throw std::runtime_error("Failed to present image");
     }
 }
+
+void Application::renderGameObjects(VkCommandBuffer commandBuffer) {
+    _pipeline->bind(commandBuffer);
+
+    for (const auto& obj : _gameObjects) {
+        PushConstantData data;
+        data.offset = obj.transform2D.translation;
+        data.color = obj.color;
+        data.transform = obj.transform2D.mat2();
+
+        vkCmdPushConstants(commandBuffer,
+                           _pipelineLayout,
+                           VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                           0,
+                           sizeof(PushConstantData),
+                           &data);
+
+        obj.model->bind(commandBuffer);
+        obj.model->draw(commandBuffer);
+    }
+}
+
 void Application::recreateSwapChain() {
     auto extent = _window.getExtent();
 
@@ -180,23 +212,7 @@ void Application::recordCommandBuffer(int imageIndex) {
     vkCmdSetViewport(_commandBuffers[imageIndex], 0, 1, &viewport);
     vkCmdSetScissor(_commandBuffers[imageIndex], 0, 1, &scissor);
 
-    _pipeline->bind(_commandBuffers[imageIndex]);
-    _model->bind(_commandBuffers[imageIndex]);
-
-    for (int i = 0; i < 4; i++) {
-        PushConstantData data;
-        data.offset = {0.0f, -0.4f + i * 0.25f};
-        data.color = {0.0f, 0.0f, 0.2f + 0.2f * i};
-
-        vkCmdPushConstants(_commandBuffers[imageIndex],
-                           _pipelineLayout,
-                           VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-                           0,
-                           sizeof(PushConstantData),
-                           &data);
-
-        _model->draw(_commandBuffers[imageIndex]);
-    }
+    renderGameObjects(_commandBuffers[imageIndex]);
 
     vkCmdEndRenderPass(_commandBuffers[imageIndex]);
 

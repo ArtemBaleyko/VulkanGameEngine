@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "Device.h"
+#include "GameObject.h"
 #include "Model.h"
 #include "Pipeline.h"
 #include "SwapChain.h"
@@ -21,12 +22,13 @@ public:
     void run();
 
 private:
-    void loadModels();
+    void loadGameObjects();
     void createPipelineLayout();
     void createPipeline();
     void createCommandBuffers();
     void freeCommandBuffers();
     void drawFrame();
+    void renderGameObjects(VkCommandBuffer commandBuffer);
 
     void recreateSwapChain();
     void recordCommandBuffer(int imageIndex);
@@ -38,6 +40,6 @@ private:
     std::unique_ptr<Pipeline> _pipeline;
     VkPipelineLayout _pipelineLayout;
     std::vector<VkCommandBuffer> _commandBuffers;
-    std::unique_ptr<Model> _model;
+    std::vector<GameObject> _gameObjects;
 };
 }  // namespace vge
