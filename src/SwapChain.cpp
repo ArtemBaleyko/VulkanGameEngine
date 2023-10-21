@@ -67,13 +67,19 @@ SwapChain::~SwapChain() {
 }
 
 VkResult SwapChain::acquireNextImage(uint32_t *imageIndex) {
-    vkWaitForFences(_device.getVkDevice(), 1, &_inFlightFences[_currentFrame], VK_TRUE,
+    vkWaitForFences(_device.getVkDevice(),
+                    1,
+                    &_inFlightFences[_currentFrame],
+                    VK_TRUE,
                     std::numeric_limits<uint64_t>::max());
 
     VkResult result =
-        vkAcquireNextImageKHR(_device.getVkDevice(), _swapChain, std::numeric_limits<uint64_t>::max(),
+        vkAcquireNextImageKHR(_device.getVkDevice(),
+                              _swapChain,
+                              std::numeric_limits<uint64_t>::max(),
                               _imageAvailableSemaphores[_currentFrame],  // must be a not signaled semaphore
-                              VK_NULL_HANDLE, imageIndex);
+                              VK_NULL_HANDLE,
+                              imageIndex);
 
     return result;
 }
@@ -283,15 +289,16 @@ void SwapChain::createFramebuffers() {
         framebufferInfo.height = swapChainExtent.height;
         framebufferInfo.layers = 1;
 
-        if (vkCreateFramebuffer(_device.getVkDevice(), &framebufferInfo, nullptr,
-                                &_swapChainFramebuffers[i]) != VK_SUCCESS) {
+        if (vkCreateFramebuffer(
+                _device.getVkDevice(), &framebufferInfo, nullptr, &_swapChainFramebuffers[i]) != VK_SUCCESS) {
             throw std::runtime_error("failed to create framebuffer!");
         }
     }
 }
 
 void SwapChain::createDepthResources() {
-    VkFormat depthFormat = findDepthFormat();
+    _swapChainDepthFormat = findDepthFormat();
+
     VkExtent2D swapChainExtent = getSwapChainExtent();
 
     _depthImages.resize(getImageCount());
@@ -307,7 +314,7 @@ void SwapChain::createDepthResources() {
         imageInfo.extent.depth = 1;
         imageInfo.mipLevels = 1;
         imageInfo.arrayLayers = 1;
-        imageInfo.format = depthFormat;
+        imageInfo.format = _swapChainDepthFormat;
         imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
         imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
@@ -315,14 +322,14 @@ void SwapChain::createDepthResources() {
         imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         imageInfo.flags = 0;
 
-        _device.createImageWithInfo(imageInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _depthImages[i],
-                                    _depthImageMemorys[i]);
+        _device.createImageWithInfo(
+            imageInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _depthImages[i], _depthImageMemorys[i]);
 
         VkImageViewCreateInfo viewInfo{};
         viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         viewInfo.image = _depthImages[i];
         viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        viewInfo.format = depthFormat;
+        viewInfo.format = _swapChainDepthFormat;
         viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
         viewInfo.subresourceRange.baseMipLevel = 0;
         viewInfo.subresourceRange.levelCount = 1;
@@ -350,10 +357,12 @@ void SwapChain::createSyncObjects() {
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        if (vkCreateSemaphore(_device.getVkDevice(), &semaphoreInfo, nullptr,
-                              &_imageAvailableSemaphores[i]) != VK_SUCCESS ||
-            vkCreateSemaphore(_device.getVkDevice(), &semaphoreInfo, nullptr,
-                              &_renderFinishedSemaphores[i]) != VK_SUCCESS ||
+        if (vkCreateSemaphore(
+                _device.getVkDevice(), &semaphoreInfo, nullptr, &_imageAvailableSemaphores[i]) !=
+                VK_SUCCESS ||
+            vkCreateSemaphore(
+                _device.getVkDevice(), &semaphoreInfo, nullptr, &_renderFinishedSemaphores[i]) !=
+                VK_SUCCESS ||
             vkCreateFence(_device.getVkDevice(), &fenceInfo, nullptr, &_inFlightFences[i]) != VK_SUCCESS) {
             throw std::runtime_error("failed to create synchronization objects for a frame!");
         }
@@ -409,7 +418,8 @@ VkExtent2D SwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilit
 VkFormat SwapChain::findDepthFormat() {
     return _device.findSupportedFormat(
         {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
-        VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+        VK_IMAGE_TILING_OPTIMAL,
+        VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 }
 
 }  // namespace vge
