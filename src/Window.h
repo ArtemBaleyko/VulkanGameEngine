@@ -17,6 +17,7 @@ public:
     inline bool shouldClose() const { return glfwWindowShouldClose(_window); }
     inline VkExtent2D getExtent() const { return {static_cast<uint32_t>(_width), static_cast<uint32_t>(_height)}; }
     inline bool wasResized() const { return _isFramebufferResized; }
+    inline GLFWwindow *getGLFWWindow() const { return _window; }
 
     inline void resetWindowResizedFlag() { _isFramebufferResized = false; }
 

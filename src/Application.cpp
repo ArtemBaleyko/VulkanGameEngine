@@ -1,5 +1,6 @@
 #include "Application.h"
 
+#include "KeyboardMovementController.h"
 #include "Camera.h"
 #include "RenderSystem.h"
 
@@ -10,6 +11,7 @@
 
 #include <array>
 #include <cassert>
+#include <chrono>
 #include <stdexcept>
 
 namespace vge {
@@ -22,8 +24,21 @@ void Application::run() {
     RenderSystem renderSystem{_device, _renderer.getSwapChainRenderPass()};
     Camera camera{};
 
+    auto viewerObject = GameObject::createGameObject();
+    KeyBoardMovementController cameraController{};
+
+
+    auto currentTime = std::chrono::high_resolution_clock::now();
+
     while (!_window.shouldClose()) {
         glfwPollEvents();
+
+        auto newTime = std::chrono::high_resolution_clock::now();
+        auto frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
+        currentTime = newTime;
+
+        cameraController.moveInPlaneXZ(_window.getGLFWWindow(), frameTime, viewerObject);
+        camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
 
         float aspect = _renderer.getAspectRatio();
         camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 10.f);
