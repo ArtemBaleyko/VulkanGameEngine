@@ -27,7 +27,6 @@ void Application::run() {
     auto viewerObject = GameObject::createGameObject();
     KeyBoardMovementController cameraController{};
 
-
     auto currentTime = std::chrono::high_resolution_clock::now();
 
     while (!_window.shouldClose()) {
@@ -60,8 +59,8 @@ void Application::loadGameObjects() {
     std::shared_ptr<Model> model = Model::createModelFromFile(_device, "../models/smooth_vase.obj");
     auto cube = GameObject::createGameObject();
     cube.model = model;
-    cube.transform.translation = {.0f, .0f, 2.5f};
-    cube.transform.scale = {.5f, .5f, .5f};
+    cube.transform.translation = {.0f, .0f, 0.5f};
+    cube.transform.scale = {.8f, .8f, .8f};
     _gameObjects.push_back(std::move(cube));
 }
 

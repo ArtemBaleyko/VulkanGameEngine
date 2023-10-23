@@ -4,6 +4,7 @@
 #include <cstring>
 #include <iostream>
 #include <unordered_map>
+#include <chrono>
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
@@ -116,9 +117,15 @@ void Model::draw(VkCommandBuffer commandBuffer) {
 
 std::unique_ptr<Model> Model::createModelFromFile(Device& device, const std::string_view& path) {
     Builder builder{};
+
+    auto start = std::chrono::high_resolution_clock::now();
     builder.loadModel(path);
+    auto elapsed = std::chrono::duration<float, std::chrono::seconds::period>(
+                         std::chrono::high_resolution_clock::now() - start)
+                         .count();
 
     std::cout << "Vertex count: " << builder.vertices.size() << '\n';
+    std::cout << "Took: " << elapsed << "s\n";
 
     return std::make_unique<Model>(device, builder);
 }
@@ -142,16 +149,13 @@ std::vector<VkVertexInputBindingDescription> Model::Vertex::getBindingDescriptio
 }
 
 std::vector<VkVertexInputAttributeDescription> Model::Vertex::getAttributeDescriptions() {
-    std::vector<VkVertexInputAttributeDescription> attributeDescriptions(2);
-    attributeDescriptions[0].binding = 0;
-    attributeDescriptions[0].location = 0;
-    attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-    attributeDescriptions[0].offset = offsetof(Vertex, position);
+    std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
 
-    attributeDescriptions[1].binding = 0;
-    attributeDescriptions[1].location = 1;
-    attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-    attributeDescriptions[1].offset = offsetof(Vertex, color);
+    attributeDescriptions.push_back({0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position)});
+    attributeDescriptions.push_back({1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, color)});
+    attributeDescriptions.push_back({2, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, normal)});
+    attributeDescriptions.push_back({3, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, uv)});
+
     return attributeDescriptions;
 }
 
@@ -182,16 +186,11 @@ void Model::Builder::loadModel(const std::string_view& path) {
                     attrib.vertices[3 * index.vertex_index + 2],
                 };
 
-                auto colorIndex = 3 * index.vertex_index + 2;
-                if (colorIndex < attrib.colors.size()) {
-                    vertex.color = {
-                        attrib.colors[colorIndex - 2],
-                        attrib.colors[colorIndex - 1],
-                        attrib.colors[colorIndex],
-                    };
-                } else {
-                    vertex.color = {1.0f, 1.0f, 1.0f};
-                }
+                vertex.color = {
+                    attrib.colors[3 * index.vertex_index],
+                    attrib.colors[3 * index.vertex_index + 1],
+                    attrib.colors[3 * index.vertex_index + 2],
+                };
             }
 
             if (index.normal_index >= 0) {

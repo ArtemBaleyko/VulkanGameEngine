@@ -13,7 +13,7 @@ namespace vge {
 
 struct PushConstantData {
     glm::mat4 transform{1.f};
-    alignas(16) glm::vec3 color{};
+    glm::mat4 normalMatrix{1.f};
 };
 
 RenderSystem::RenderSystem(Device& device, VkRenderPass renderPass)
@@ -61,8 +61,9 @@ void RenderSystem::renderGameObjects(VkCommandBuffer commandBuffer,
 
     for (auto& obj : gameObjects) {
         PushConstantData data{};
-        data.color = obj.color;
-        data.transform = projectionView * obj.transform.mat4();
+        auto modelMatrix = obj.transform.mat4();
+        data.transform = projectionView * modelMatrix;
+        data.normalMatrix = obj.transform.normalMatrix();
 
         vkCmdPushConstants(commandBuffer,
                            _pipelineLayout,
