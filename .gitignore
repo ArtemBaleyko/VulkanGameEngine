@@ -1,6 +1,13 @@
 .vs/
 x64/
-vendor/
+build/
+vendor/glfw
+vendor/glm
+
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.sln
 
 *.spv
 *.out
