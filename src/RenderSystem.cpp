@@ -57,13 +57,15 @@ void RenderSystem::renderGameObjects(VkCommandBuffer commandBuffer,
                                      const Camera& camera) {
     _pipeline->bind(commandBuffer);
 
+    const glm::mat4 projectionView = camera.getProjectionViewMatrix();
+
     for (auto& obj : gameObjects) {
         obj.transform.rotation.y = glm::mod(obj.transform.rotation.y + 0.0005f, glm::two_pi<float>());
         obj.transform.rotation.x = glm::mod(obj.transform.rotation.x + 0.0005f, glm::two_pi<float>());
 
         PushConstantData data{};
         data.color = obj.color;
-        data.transform = camera.getProjectionMatrix() * obj.transform.mat4();
+        data.transform = projectionView * obj.transform.mat4();
 
         vkCmdPushConstants(commandBuffer,
                            _pipelineLayout,
