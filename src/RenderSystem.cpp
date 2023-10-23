@@ -11,8 +11,7 @@
 namespace vge {
 
 struct PushConstantData {
-    glm::mat2 transform{1.0f};
-    glm::vec2 offset;
+    glm::mat4 transform{1.0f};
     alignas(16) glm::vec3 color;
 };
 
@@ -49,18 +48,22 @@ void RenderSystem::createPipeline(VkRenderPass renderPass) {
     pipelineConfig.renderPass = renderPass;
     pipelineConfig.pipelineLayout = _pipelineLayout;
 
-    _pipeline = std::make_unique<Pipeline>(
-        "shaders/shader.vert.spv", "shaders/shader.frag.spv", _device, pipelineConfig);
+    _pipeline = std::make_unique<Pipeline>("shaders\\shader.vert.spv",
+                                           "shaders\\shader.frag.spv",
+                                           _device,
+                                           pipelineConfig);
 }
 
-void RenderSystem::renderGameObjects(VkCommandBuffer commandBuffer, const std::vector<GameObject>& gameObjects) {
+void RenderSystem::renderGameObjects(VkCommandBuffer commandBuffer, std::vector<GameObject>& gameObjects) {
     _pipeline->bind(commandBuffer);
 
-    for (const auto& obj : gameObjects) {
+    for (auto& obj : gameObjects) {
+        obj.transform.rotation.y = glm::mod(obj.transform.rotation.y + 0.0005f, glm::two_pi<float>());
+        obj.transform.rotation.x = glm::mod(obj.transform.rotation.x + 0.0005f, glm::two_pi<float>());
+
         PushConstantData data;
-        data.offset = obj.transform2D.translation;
         data.color = obj.color;
-        data.transform = obj.transform2D.mat2();
+        data.transform = obj.transform.mat4();
 
         vkCmdPushConstants(commandBuffer,
                            _pipelineLayout,

@@ -77,7 +77,8 @@ void Pipeline::getDefaultPipelineConfigInfo(PipelineConfig& configInfo) {
     configInfo.depthStencilInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
     configInfo.depthStencilInfo.depthTestEnable = VK_TRUE;
     configInfo.depthStencilInfo.depthWriteEnable = VK_TRUE;
-    configInfo.depthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS;
+    // TODO: Fix depth test issue
+    configInfo.depthStencilInfo.depthCompareOp = VK_COMPARE_OP_GREATER;
     configInfo.depthStencilInfo.depthBoundsTestEnable = VK_FALSE;
     configInfo.depthStencilInfo.minDepthBounds = 0.0f;  // Optional
     configInfo.depthStencilInfo.maxDepthBounds = 1.0f;  // Optional
@@ -91,7 +92,6 @@ void Pipeline::getDefaultPipelineConfigInfo(PipelineConfig& configInfo) {
         static_cast<uint32_t>(configInfo.dynamicStateEnables.size());
     configInfo.dynamicStateInfo.flags = 0;
     configInfo.dynamicStateInfo.pDynamicStates = configInfo.dynamicStateEnables.data();
-    configInfo.dynamicStateInfo.flags = 0;
 }
 
 void Pipeline::createGraphicsPipeline(const std::string& vertShaderPath, const std::string& fragShaderPath,

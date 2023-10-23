@@ -9,7 +9,7 @@ GameObject GameObject::createGameObject() {
 GameObject::GameObject(id_t id)
     : color{}
     , model{}
-    , transform2D{}
+    , transform{}
     , _id(id) {}
 
 }  // namespace vge
