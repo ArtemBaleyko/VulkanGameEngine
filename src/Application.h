@@ -11,8 +11,8 @@
 namespace vge {
 class Application {
 public:
-    static constexpr uint32_t WIDTH = 800;
-    static constexpr uint32_t HEIGHT = 600;
+    static constexpr uint32_t WIDTH = 1024;
+    static constexpr uint32_t HEIGHT = 768;
 
     Application();
     ~Application();
