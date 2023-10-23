@@ -52,12 +52,11 @@ void RenderSystem::createPipeline(VkRenderPass renderPass) {
         _device, "../shaders/shader.vert.spv", "../shaders/shader.frag.spv", pipelineConfig);
 }
 
-void RenderSystem::renderGameObjects(VkCommandBuffer commandBuffer,
-                                     std::vector<GameObject>& gameObjects,
-                                     const Camera& camera) {
+void RenderSystem::renderGameObjects(FrameInfo& frameInfo, std::vector<GameObject>& gameObjects) {
+    auto commandBuffer = frameInfo.commandBuffer;
     _pipeline->bind(commandBuffer);
 
-    const glm::mat4 projectionView = camera.getProjectionViewMatrix();
+    const glm::mat4 projectionView = frameInfo.camera.getProjectionViewMatrix();
 
     for (auto& obj : gameObjects) {
         PushConstantData data{};

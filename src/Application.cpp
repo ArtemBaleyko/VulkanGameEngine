@@ -3,6 +3,7 @@
 #include "KeyboardMovementController.h"
 #include "Camera.h"
 #include "RenderSystem.h"
+#include "Buffer.h"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -16,11 +17,26 @@
 
 namespace vge {
 
+struct GlobalUbo {
+    glm::mat4 projectionView{1.0f};
+    glm::vec3 lightDirection = glm::normalize(glm::vec3(-1.0f, -3.0f, -1.0f));
+};
+
 Application::Application() { loadGameObjects(); }
 
 Application::~Application() {}
 
 void Application::run() {
+    Buffer uniformBuffer{_device,
+                         sizeof(GlobalUbo),
+                         SwapChain::MAX_FRAMES_IN_FLIGHT,
+                         VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+                         _device.properties.limits.minUniformBufferOffsetAlignment};
+
+
+    uniformBuffer.map();
+
     RenderSystem renderSystem{_device, _renderer.getSwapChainRenderPass()};
     Camera camera{};
 
@@ -43,9 +59,19 @@ void Application::run() {
         camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 10.f);
 
         if (auto commandBuffer = _renderer.beginFrame()) {
+            int frameIndex = _renderer.getFrameIndex();
+            FrameInfo frameInfo{frameIndex, frameTime, commandBuffer, camera};
+            
+
+            GlobalUbo ubo{};
+            ubo.projectionView = camera.getProjectionViewMatrix();
+            uniformBuffer.writeToIndex(&ubo, frameIndex);
+            uniformBuffer.flushIndex(frameIndex);
+
+            
             _renderer.beginSwapChainRenderPass(commandBuffer);
 
-            renderSystem.renderGameObjects(commandBuffer, _gameObjects, camera);
+            renderSystem.renderGameObjects(frameInfo, _gameObjects);
 
             _renderer.endSwapChainRenderPass(commandBuffer);
             _renderer.endFrame();
