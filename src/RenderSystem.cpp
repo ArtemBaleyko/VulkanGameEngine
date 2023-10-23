@@ -54,7 +54,7 @@ void RenderSystem::createPipeline(VkRenderPass renderPass) {
         _device, "../shaders/shader.vert.spv", "../shaders/shader.frag.spv", pipelineConfig);
 }
 
-void RenderSystem::renderGameObjects(FrameInfo& frameInfo, std::vector<GameObject>& gameObjects) {
+void RenderSystem::renderGameObjects(FrameInfo& frameInfo) {
     auto commandBuffer = frameInfo.commandBuffer;
     _pipeline->bind(commandBuffer);
 
@@ -67,7 +67,10 @@ void RenderSystem::renderGameObjects(FrameInfo& frameInfo, std::vector<GameObjec
                             0,
                             nullptr);
 
-    for (auto& obj : gameObjects) {
+    for (const auto& [id, obj] : frameInfo.gameObjects) {
+
+        if (!obj.model) continue;
+
         PushConstantData data{};
         data.modelMatrix = obj.transform.mat4();
         data.normalMatrix = obj.transform.normalMatrix();

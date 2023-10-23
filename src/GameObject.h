@@ -5,6 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <memory>
+#include <unordered_map>
 
 namespace vge {
 
@@ -13,13 +14,14 @@ struct TransformComponent {
     glm::vec3 scale{1.f, 1.f, 1.f};
     glm::vec3 rotation{};
 
-    glm::mat4 mat4();
-    glm::mat3 normalMatrix();
+    glm::mat4 mat4() const;
+    glm::mat3 normalMatrix() const;
 };
 
 class GameObject {
 public:
     using id_t = unsigned int;
+    using Map = std::unordered_map<id_t, GameObject>;
 
     static GameObject createGameObject() {
         static id_t currentId = 0;

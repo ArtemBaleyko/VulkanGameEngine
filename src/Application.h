@@ -31,6 +31,6 @@ private:
     Renderer _renderer{_window, _device};
 
     std::unique_ptr<DescriptorPool> _globalPool{};
-    std::vector<GameObject> _gameObjects;
+    GameObject::Map _gameObjects;
 };
 }  // namespace vge

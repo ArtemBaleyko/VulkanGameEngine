@@ -20,7 +20,9 @@ namespace vge {
 
 struct GlobalUbo {
     glm::mat4 projectionView{1.0f};
-    glm::vec3 lightDirection = glm::normalize(glm::vec3(-1.0f, -3.0f, -1.0f));
+    glm::vec4 ambientLightColor{1.0f, 1.0f, 1.0f, 0.2f};
+    glm::vec3 lightPosition{-1.0f};
+    alignas(16) glm::vec4 lightColor{1.0f};
 };
 
 Application::Application() { 
@@ -47,7 +49,7 @@ void Application::run() {
     }
 
     auto globalSetLayout = DescriptorSetLayout::Builder(_device)
-                               .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+                               .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS)
                                .build();
 
     std::vector<VkDescriptorSet> globalDescriptorSets(SwapChain::MAX_FRAMES_IN_FLIGHT);
@@ -64,6 +66,7 @@ void Application::run() {
     Camera camera{};
 
     auto viewerObject = GameObject::createGameObject();
+    viewerObject.transform.translation.z = -2.5f;
     KeyBoardMovementController cameraController{};
 
     auto currentTime = std::chrono::high_resolution_clock::now();
@@ -79,12 +82,12 @@ void Application::run() {
         camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
 
         float aspect = _renderer.getAspectRatio();
-        camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 10.f);
+        camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 100.f);
 
         if (auto commandBuffer = _renderer.beginFrame()) {
             int frameIndex = _renderer.getFrameIndex();
             FrameInfo frameInfo{
-                frameIndex, frameTime, commandBuffer, camera, globalDescriptorSets[frameIndex]};
+                frameIndex, frameTime, commandBuffer, camera, globalDescriptorSets[frameIndex], _gameObjects};
             
 
             GlobalUbo ubo{};
@@ -95,7 +98,7 @@ void Application::run() {
             
             _renderer.beginSwapChainRenderPass(commandBuffer);
 
-            renderSystem.renderGameObjects(frameInfo, _gameObjects);
+            renderSystem.renderGameObjects(frameInfo);
 
             _renderer.endSwapChainRenderPass(commandBuffer);
             _renderer.endFrame();
@@ -106,12 +109,28 @@ void Application::run() {
 }
 
 void Application::loadGameObjects() {
-    std::shared_ptr<Model> model = Model::createModelFromFile(_device, "../models/smooth_vase.obj");
-    auto cube = GameObject::createGameObject();
-    cube.model = model;
-    cube.transform.translation = {.0f, .0f, 0.5f};
-    cube.transform.scale = {.8f, .8f, .8f};
-    _gameObjects.push_back(std::move(cube));
+    {
+        std::shared_ptr<Model> model = Model::createModelFromFile(_device, "../models/smooth_vase.obj");
+        auto obj = GameObject::createGameObject();
+        obj.model = model;
+        obj.transform.translation = {-0.5f, 0.5f, 0.0f};
+        _gameObjects.emplace(obj.getId(), std::move(obj));
+    }
+    {
+        std::shared_ptr<Model> model = Model::createModelFromFile(_device, "../models/smooth_vase.obj");
+        auto obj = GameObject::createGameObject();
+        obj.model = model;
+        obj.transform.translation = {0.5f, 0.5f, 2.0f};
+        _gameObjects.emplace(obj.getId(), std::move(obj));
+    }
+    {
+        std::shared_ptr<Model> model = Model::createModelFromFile(_device, "../models/quad.obj");
+        auto obj = GameObject::createGameObject();
+        obj.model = model;
+        obj.transform.scale = {3.0f, 1.0f, 3.0f};
+        obj.transform.translation = {0.0f, 0.5f, 0.0f};
+        _gameObjects.emplace(obj.getId(), std::move(obj));
+    }
 }
 
 }  // namespace vge
