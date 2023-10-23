@@ -14,6 +14,7 @@
 #include <cassert>
 #include <chrono>
 #include <stdexcept>
+#include <algorithm>
 
 namespace vge {
 
@@ -22,22 +23,44 @@ struct GlobalUbo {
     glm::vec3 lightDirection = glm::normalize(glm::vec3(-1.0f, -3.0f, -1.0f));
 };
 
-Application::Application() { loadGameObjects(); }
+Application::Application() { 
+    _globalPool = DescriptorPool::Builder(_device)
+                      .setMaxSets(SwapChain::MAX_FRAMES_IN_FLIGHT)
+                      .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, SwapChain::MAX_FRAMES_IN_FLIGHT)
+                      .build();
+    loadGameObjects(); 
+}
 
 Application::~Application() {}
 
 void Application::run() {
-    Buffer uniformBuffer{_device,
-                         sizeof(GlobalUbo),
-                         SwapChain::MAX_FRAMES_IN_FLIGHT,
-                         VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-                         _device.properties.limits.minUniformBufferOffsetAlignment};
+    std::vector<std::unique_ptr<Buffer>> uniformBuffers(SwapChain::MAX_FRAMES_IN_FLIGHT);
 
+    for (size_t i = 0; i < uniformBuffers.size(); i++) {
+        uniformBuffers[i] = std::make_unique<Buffer>(_device,
+                                                     sizeof(GlobalUbo),
+                                                     SwapChain::MAX_FRAMES_IN_FLIGHT,
+                                                     VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                                                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 
-    uniformBuffer.map();
+        uniformBuffers[i]->map();
+    }
 
-    RenderSystem renderSystem{_device, _renderer.getSwapChainRenderPass()};
+    auto globalSetLayout = DescriptorSetLayout::Builder(_device)
+                               .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+                               .build();
+
+    std::vector<VkDescriptorSet> globalDescriptorSets(SwapChain::MAX_FRAMES_IN_FLIGHT);
+
+    for (size_t i = 0; i < globalDescriptorSets.size(); i++) {
+        auto bufferInfo = uniformBuffers[i]->descriptorInfo();
+        DescriptorWriter(*globalSetLayout, *_globalPool)
+            .writeBuffer(0, &bufferInfo)
+            .build(globalDescriptorSets[i]);
+    }
+
+    RenderSystem renderSystem{
+        _device, _renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
     Camera camera{};
 
     auto viewerObject = GameObject::createGameObject();
@@ -60,14 +83,15 @@ void Application::run() {
 
         if (auto commandBuffer = _renderer.beginFrame()) {
             int frameIndex = _renderer.getFrameIndex();
-            FrameInfo frameInfo{frameIndex, frameTime, commandBuffer, camera};
+            FrameInfo frameInfo{
+                frameIndex, frameTime, commandBuffer, camera, globalDescriptorSets[frameIndex]};
             
 
             GlobalUbo ubo{};
             ubo.projectionView = camera.getProjectionViewMatrix();
-            uniformBuffer.writeToIndex(&ubo, frameIndex);
-            uniformBuffer.flushIndex(frameIndex);
 
+            uniformBuffers[frameIndex]->writeToBuffer(&ubo);
+            uniformBuffers[frameIndex]->flush();
             
             _renderer.beginSwapChainRenderPass(commandBuffer);
 

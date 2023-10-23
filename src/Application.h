@@ -4,6 +4,7 @@
 #include "GameObject.h"
 #include "Renderer.h"
 #include "Window.h"
+#include "Descriptor.h"
 
 #include <memory>
 #include <vector>
@@ -29,6 +30,7 @@ private:
     Device _device{_window};
     Renderer _renderer{_window, _device};
 
+    std::unique_ptr<DescriptorPool> _globalPool{};
     std::vector<GameObject> _gameObjects;
 };
 }  // namespace vge
