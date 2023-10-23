@@ -3,11 +3,12 @@
 #include <stdexcept>
 
 namespace vge {
-Window::Window(const std::string& name, uint32_t width, uint32_t height)
-    : _name(name)
-    , _width(width)
-    , _height(height)
-    , _isFramebufferResized(false) {
+
+Window::Window(int width, int height, std::string name)
+    : _width{width}
+    , _height{height}
+    , _isFramebufferResized{false}
+    , _name{name} {
     initWindow();
 }
 
@@ -16,27 +17,27 @@ Window::~Window() {
     glfwTerminate();
 }
 
-void Window::createWindowSurface(VkInstance instance, VkSurfaceKHR* surface) {
-    if (glfwCreateWindowSurface(instance, _window, nullptr, surface) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create window surface");
-    }
-}
-
-void Window::frameBufferResizedCallback(GLFWwindow* window, int width, int height) {
-    auto vgeWindow = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
-    vgeWindow->_isFramebufferResized = true;
-    vgeWindow->_width = width;
-    vgeWindow->_height = height;
-}
-
 void Window::initWindow() {
     glfwInit();
-
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
     _window = glfwCreateWindow(_width, _height, _name.c_str(), nullptr, nullptr);
     glfwSetWindowUserPointer(_window, this);
-    glfwSetFramebufferSizeCallback(_window, frameBufferResizedCallback);
+    glfwSetFramebufferSizeCallback(_window, framebufferResizeCallback);
 }
+
+void Window::createWindowSurface(VkInstance instance, VkSurfaceKHR *surface) {
+    if (glfwCreateWindowSurface(instance, _window, nullptr, surface) != VK_SUCCESS) {
+        throw std::runtime_error("failed to craete window surface");
+    }
+}
+
+void Window::framebufferResizeCallback(GLFWwindow *_window, int _width, int _height) {
+    auto window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(_window));
+    window->_isFramebufferResized = true;
+    window->_width = _width;
+    window->_height = _height;
+}
+
 }  // namespace vge

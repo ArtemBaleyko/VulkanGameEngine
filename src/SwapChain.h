@@ -1,12 +1,12 @@
 #pragma once
 
+#include "Device.h"
+
 #include <vulkan/vulkan.h>
 
 #include <memory>
 #include <string>
 #include <vector>
-
-#include "Device.h"
 
 namespace vge {
 
@@ -16,23 +16,25 @@ public:
 
     SwapChain(Device &deviceRef, VkExtent2D windowExtent);
     SwapChain(Device &deviceRef, VkExtent2D windowExtent, std::shared_ptr<SwapChain> previous);
+
     ~SwapChain();
 
     SwapChain(const SwapChain &) = delete;
-    void operator=(const SwapChain &) = delete;
+    SwapChain &operator=(const SwapChain &) = delete;
 
-    inline VkFramebuffer getFrameBuffer(int index) { return _swapChainFramebuffers[index]; }
-    inline VkRenderPass getRenderPass() { return _renderPass; }
-    inline VkImageView getImageView(int index) { return _swapChainImageViews[index]; }
-    inline size_t getImageCount() { return _swapChainImages.size(); }
-    inline VkFormat getSwapChainImageFormat() { return _swapChainImageFormat; }
-    inline VkExtent2D getSwapChainExtent() { return _swapChainExtent; }
-    inline uint32_t getWidth() { return _swapChainExtent.width; }
-    inline uint32_t getHeight() { return _swapChainExtent.height; }
+    inline VkFramebuffer getFrameBuffer(int index) const { return _swapChainFramebuffers[index]; }
+    inline VkRenderPass getRenderPass() const { return _renderPass; }
+    inline VkImageView getImageView(int index) const { return _swapChainImageViews[index]; }
+    inline size_t imageCount() const { return _swapChainImages.size(); }
+    inline VkFormat getSwapChainImageFormat() const { return _swapChainImageFormat; }
+    inline VkExtent2D getSwapChainExtent() const { return _swapChainExtent; }
+    inline uint32_t width() const { return _swapChainExtent.width; }
+    inline uint32_t height() const { return _swapChainExtent.height; }
 
-    inline float extentAspectRatio() {
+    inline float extentAspectRatio() const {
         return static_cast<float>(_swapChainExtent.width) / static_cast<float>(_swapChainExtent.height);
     }
+
     VkFormat findDepthFormat();
 
     VkResult acquireNextImage(uint32_t *imageIndex);
@@ -71,18 +73,17 @@ private:
     std::vector<VkImage> _swapChainImages;
     std::vector<VkImageView> _swapChainImageViews;
 
-    Device &_device;
+    Device& _device;
     VkExtent2D _windowExtent;
 
     VkSwapchainKHR _swapChain;
+    std::shared_ptr<SwapChain> _oldSwapChain;
 
     std::vector<VkSemaphore> _imageAvailableSemaphores;
     std::vector<VkSemaphore> _renderFinishedSemaphores;
     std::vector<VkFence> _inFlightFences;
     std::vector<VkFence> _imagesInFlight;
     size_t _currentFrame = 0;
-
-    std::shared_ptr<SwapChain> _oldSwapChain;
 };
 
 }  // namespace vge

@@ -1,13 +1,12 @@
 #pragma once
 
+#include "Device.h"
+#include "SwapChain.h"
+#include "Window.h"
+
 #include <cassert>
 #include <memory>
 #include <vector>
-
-#include "Device.h"
-#include "Model.h"
-#include "SwapChain.h"
-#include "Window.h"
 
 namespace vge {
 class Renderer {
@@ -16,25 +15,24 @@ public:
     ~Renderer();
 
     Renderer(const Renderer&) = delete;
-    Renderer& operator=(const Renderer&) = delete;
+    Renderer &operator=(const Renderer &) = delete;
 
     inline VkRenderPass getSwapChainRenderPass() const { return _swapChain->getRenderPass(); }
-
+    inline float getAspectRatio() const { return _swapChain->extentAspectRatio(); }
     inline bool isFrameInProgress() const { return _isFrameStarted; }
 
-    inline int getFrameIndex() const {
-        assert(_isFrameStarted && "Cannot get frame index when frame is not started");
-        return _currentFrameIndex;
+    inline VkCommandBuffer getCurrentCommandBuffer() const {
+        assert(_isFrameStarted && "Cannot get command buffer when frame not in progress");
+        return _commandBuffers[_currentFrameIndex];
     }
 
-    inline VkCommandBuffer getCurrentCommandBuffer() const {
-        assert(_isFrameStarted && "Cannot get command buffer when frame is not started");
-        return _commandBuffers[_currentFrameIndex];
+    inline int getFrameIndex() const {
+        assert(_isFrameStarted && "Cannot get frame index when frame not in progress");
+        return _currentFrameIndex;
     }
 
     VkCommandBuffer beginFrame();
     void endFrame();
-
     void beginSwapChainRenderPass(VkCommandBuffer commandBuffer);
     void endSwapChainRenderPass(VkCommandBuffer commandBuffer);
 
@@ -43,7 +41,6 @@ private:
     void freeCommandBuffers();
     void recreateSwapChain();
 
-private:
     Window& _window;
     Device& _device;
     std::unique_ptr<SwapChain> _swapChain;

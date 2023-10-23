@@ -4,34 +4,34 @@
 #include <GLFW/glfw3.h>
 
 #include <string>
-
 namespace vge {
+
 class Window {
 public:
-    Window(const std::string& name, uint32_t width, uint32_t height);
+    Window(int width, int height, std::string name);
     ~Window();
 
-    Window(const Window&) = delete;
-    Window& operator=(const Window&) = delete;
+    Window(const Window &) = delete;
+    Window &operator=(const Window &) = delete;
 
     inline bool shouldClose() const { return glfwWindowShouldClose(_window); }
+    inline VkExtent2D getExtent() const { return {static_cast<uint32_t>(_width), static_cast<uint32_t>(_height)}; }
     inline bool wasResized() const { return _isFramebufferResized; }
-    inline VkExtent2D getExtent() const { return {_width, _height}; }
 
     inline void resetWindowResizedFlag() { _isFramebufferResized = false; }
-    void createWindowSurface(VkInstance instance, VkSurfaceKHR* surface);
+
+    void createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
 
 private:
-    static void frameBufferResizedCallback(GLFWwindow* window, int width, int height);
-
+    static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
     void initWindow();
 
 private:
-    std::string _name;
-    uint32_t _width;
-    uint32_t _height;
+    int _width;
+    int _height;
     bool _isFramebufferResized;
 
+    std::string _name;
     GLFWwindow* _window;
 };
 }  // namespace vge

@@ -1,14 +1,16 @@
 #include "Application.h"
 
-#include <array>
-#include <stdexcept>
+#include "Camera.h"
+#include "RenderSystem.h"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
-#include "RenderSystem.h"
+#include <array>
+#include <cassert>
+#include <stdexcept>
 
 namespace vge {
 
@@ -18,13 +20,19 @@ Application::~Application() {}
 
 void Application::run() {
     RenderSystem renderSystem{_device, _renderer.getSwapChainRenderPass()};
+    Camera camera{};
 
     while (!_window.shouldClose()) {
         glfwPollEvents();
 
+        float aspect = _renderer.getAspectRatio();
+        camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 10.f);
+
         if (auto commandBuffer = _renderer.beginFrame()) {
             _renderer.beginSwapChainRenderPass(commandBuffer);
-            renderSystem.renderGameObjects(commandBuffer, _gameObjects);
+
+            renderSystem.renderGameObjects(commandBuffer, _gameObjects, camera);
+
             _renderer.endSwapChainRenderPass(commandBuffer);
             _renderer.endFrame();
         }
@@ -33,6 +41,7 @@ void Application::run() {
     vkDeviceWaitIdle(_device.getVkDevice());
 }
 
+// temporary helper function, creates a 1x1x1 cube centered at offset
 std::unique_ptr<Model> createCubeModel(Device& device, glm::vec3 offset) {
     std::vector<Model::Vertex> vertices{
 
@@ -91,12 +100,11 @@ std::unique_ptr<Model> createCubeModel(Device& device, glm::vec3 offset) {
 }
 
 void Application::loadGameObjects() {
-    std::shared_ptr<Model> model = createCubeModel(_device, {0.0f, 0.0f, 0.0f});
+    std::shared_ptr<Model> model = createCubeModel(_device, {.0f, .0f, .0f});
     auto cube = GameObject::createGameObject();
     cube.model = model;
-    cube.transform.translation = {0.0f, 0.0f, 0.5f};
-    cube.transform.scale = {0.5f, 0.5f, 0.5f};
-
+    cube.transform.translation = {.0f, .0f, 2.5f};
+    cube.transform.scale = {.5f, .5f, .5f};
     _gameObjects.push_back(std::move(cube));
 }
 

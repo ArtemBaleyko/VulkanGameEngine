@@ -1,14 +1,16 @@
 #pragma once
 
-#include <string>
-
 #include "Device.h"
+
+#include <string>
+#include <vector>
 
 namespace vge {
 
-struct PipelineConfig {
-    PipelineConfig(const PipelineConfig&) = delete;
-    PipelineConfig& operator=(const PipelineConfig&) = delete;
+struct PipelineConfigInfo {
+    PipelineConfigInfo() = default;
+    PipelineConfigInfo(const PipelineConfigInfo&) = delete;
+    PipelineConfigInfo& operator=(const PipelineConfigInfo&) = delete;
 
     VkPipelineViewportStateCreateInfo viewportInfo;
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
@@ -26,9 +28,10 @@ struct PipelineConfig {
 
 class Pipeline {
 public:
-    Pipeline(const std::string& vertShaderPath, const std::string& fragShaderPath, Device& device,
-             const PipelineConfig& config);
-
+    Pipeline(Device& device,
+                const std::string& vertFilepath,
+                const std::string& fragFilepath,
+                const PipelineConfigInfo& configInfo);
     ~Pipeline();
 
     Pipeline(const Pipeline&) = delete;
@@ -36,11 +39,12 @@ public:
 
     void bind(VkCommandBuffer commandBuffer);
 
-    static void getDefaultPipelineConfigInfo(PipelineConfig& configInfo);
+    static void defaultPipelineConfigInfo(PipelineConfigInfo& configInfo);
 
 private:
-    void createGraphicsPipeline(const std::string& vertShaderPath, const std::string& fragShaderPath,
-                                const PipelineConfig& config);
+    void createGraphicsPipeline(const std::string& vertFilepath,
+                                const std::string& fragFilepath,
+                                const PipelineConfigInfo& configInfo);
 
     void createShaderModule(const std::vector<char>& code, VkShaderModule* shaderModule);
 

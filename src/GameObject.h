@@ -1,21 +1,19 @@
 #pragma once
 
-#include <memory>
+#include "Model.h"
 
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "Model.h"
+#include <memory>
 
 namespace vge {
 
 struct TransformComponent {
     glm::vec3 translation{};
-    glm::vec3 scale{1.0f, 1.0f, 1.0f};
+    glm::vec3 scale{1.f, 1.f, 1.f};
     glm::vec3 rotation{};
 
-    inline glm::mat4 mat4() const { 
+    glm::mat4 mat4() {
         const float c3 = glm::cos(rotation.z);
         const float s3 = glm::sin(rotation.z);
         const float c2 = glm::cos(rotation.x);
@@ -47,25 +45,26 @@ class GameObject {
 public:
     using id_t = unsigned int;
 
-    GameObject(const GameObject&) = delete;
-    GameObject& operator=(const GameObject&) = delete;
+    static GameObject createGameObject() {
+        static id_t currentId = 0;
+        return GameObject{currentId++};
+    }
 
-    GameObject(GameObject&&) = default;
-    GameObject& operator=(GameObject&&) = default;
-
-    static GameObject createGameObject();
+    GameObject(const GameObject &) = delete;
+    GameObject &operator=(const GameObject &) = delete;
+    GameObject(GameObject &&) = default;
+    GameObject &operator=(GameObject &&) = default;
 
     inline id_t getId() const { return _id; }
 
-public:
-    glm::vec3 color;
-    std::shared_ptr<Model> model;
-    TransformComponent transform;
+    std::shared_ptr<Model> model{};
+    glm::vec3 color{};
+    TransformComponent transform{};
 
 private:
-    GameObject(id_t id);
+    GameObject(id_t objId)
+        : _id{objId} {}
 
-private:
     id_t _id;
 };
 }  // namespace vge
