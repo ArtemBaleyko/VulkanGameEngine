@@ -19,11 +19,11 @@ VkDeviceSize Buffer::getAlignment(VkDeviceSize instanceSize, VkDeviceSize minOff
 }
 
 Buffer::Buffer(Device &device,
-                     VkDeviceSize instanceSize,
-                     uint32_t instanceCount,
-                     VkBufferUsageFlags usageFlags,
-                     VkMemoryPropertyFlags memoryPropertyFlags,
-                     VkDeviceSize minOffsetAlignment)
+               VkDeviceSize instanceSize,
+               uint32_t instanceCount,
+               VkBufferUsageFlags usageFlags,
+               VkMemoryPropertyFlags memoryPropertyFlags,
+               VkDeviceSize minOffsetAlignment)
     : _device{device}
     , _instanceSize{instanceSize}
     , _instanceCount{instanceCount}
@@ -183,4 +183,4 @@ VkDescriptorBufferInfo Buffer::descriptorInfoForIndex(int index) {
  * @return VkResult of the invalidate call
  */
 VkResult Buffer::invalidateIndex(int index) { return invalidate(_alignmentSize, index * _alignmentSize); }
-}
+}  // namespace vge

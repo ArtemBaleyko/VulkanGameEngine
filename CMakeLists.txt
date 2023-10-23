@@ -49,7 +49,7 @@ else()
   set(GLFW_LIB glfw)
   message(STATUS "Found GLFW")
 endif()
-if (NOT GLFW_LIB)
+if (NOT DEFINED GLFW_LIB)
     message(FATAL_ERROR "Could not find glfw library!")
 else()
     message(STATUS "Using glfw lib at: ${GLFW_LIB}")
@@ -112,7 +112,7 @@ endif()
 # Find all vertex and fragment sources within shaders directory
 # taken from VBlancos vulkan tutorial
 # https://github.com/vblanco20-1/vulkan-guide/blob/all-chapters/CMakeLists.txt
-find_program(GLSL_VALIDATOR glslangValidator HINTS 
+find_program(GLSL_VALIDATOR glslc HINTS 
   ${Vulkan_GLSLANG_VALIDATOR_EXECUTABLE} 
   /usr/bin 
   /usr/local/bin 
@@ -133,7 +133,7 @@ foreach(GLSL ${GLSL_SOURCE_FILES})
   set(SPIRV "${PROJECT_SOURCE_DIR}/shaders/${FILE_NAME}.spv")
   add_custom_command(
     OUTPUT ${SPIRV}
-    COMMAND ${GLSL_VALIDATOR} -V ${GLSL} -o ${SPIRV}
+    COMMAND ${GLSL_VALIDATOR} ${GLSL} -o ${SPIRV}
     DEPENDS ${GLSL})
   list(APPEND SPIRV_BINARY_FILES ${SPIRV})
 endforeach(GLSL)
