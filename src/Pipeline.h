@@ -42,6 +42,7 @@ public:
     void bind(VkCommandBuffer commandBuffer);
 
     static void defaultPipelineConfigInfo(PipelineConfigInfo& configInfo);
+    static void enableAlphaBlending(PipelineConfigInfo& configInfo);
 
 private:
     void createGraphicsPipeline(const std::string& vertFilepath,

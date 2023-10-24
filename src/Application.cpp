@@ -132,6 +132,7 @@ void Application::loadGameObjects() {
         obj.model = model;
         obj.transform.scale = {3.0f, 1.0f, 3.0f};
         obj.transform.translation = {0.0f, 0.5f, 0.0f};
+        obj.color = {0.2f, 0.2f, 0.2f};
         _gameObjects.emplace(obj.getId(), std::move(obj));
     }
 
@@ -145,7 +146,7 @@ void Application::loadGameObjects() {
     };
 
     for (int i = 0; i < lightColors.size(); i++) {
-        auto pointLight = GameObject::createPointLight(.2f);
+        auto pointLight = GameObject::createPointLight(1.0f);
         pointLight.color = lightColors[i];
         auto rotateLight = glm::rotate(
             glm::mat4(1.0f), (i * glm::two_pi<float>()) / lightColors.size(), {0.0f, -1.0f, 0.0f});

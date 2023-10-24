@@ -25,6 +25,7 @@ public:
     inline const glm::mat4& getViewMatrix() const { return _viewMatrix; }
     inline const glm::mat4& getInverseViewMatrix() const { return _inverseViewMatrix; }
     inline const glm::mat4  getProjectionViewMatrix() const { return _projectionMatrix * _viewMatrix; }
+    inline const glm::vec3  getPosition() const { return glm::vec3(_inverseViewMatrix[3]); }
 
 private:
     glm::mat4 _projectionMatrix{1.0f};
