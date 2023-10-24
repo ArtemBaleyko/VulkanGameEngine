@@ -90,7 +90,7 @@ void Application::run() {
             GlobalUbo ubo{};
             ubo.projection = camera.getProjectionMatrix();
             ubo.view = camera.getViewMatrix();
-
+            ubo.inverseView = camera.getInverseViewMatrix();
             pointLightSystem.update(frameInfo, ubo);
 
             uniformBuffers[frameIndex]->writeToBuffer(&ubo);
@@ -115,7 +115,7 @@ void Application::loadGameObjects() {
         auto obj = GameObject::createGameObject();
         obj.model = model;
         obj.transform.translation = {-0.5f, 0.5f, 0.0f};
-        obj.transform.scale = {2.0f, 2.0f, 2.0f};
+        obj.transform.scale = {3.0f, 1.5f, 3.0f};
         _gameObjects.emplace(obj.getId(), std::move(obj));
     }
     {
@@ -123,7 +123,7 @@ void Application::loadGameObjects() {
         auto obj = GameObject::createGameObject();
         obj.model = model;
         obj.transform.translation = {0.5f, 0.5f, 0.0f};
-        obj.transform.scale = {2.0f, 2.0f, 2.0f};
+        obj.transform.scale = {3.0f, 1.5f, 3.0f};
         _gameObjects.emplace(obj.getId(), std::move(obj));
     }
     {

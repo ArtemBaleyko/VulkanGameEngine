@@ -43,6 +43,20 @@ void Camera::setViewDirection(const glm::vec3& position, const glm::vec3& direct
     _viewMatrix[3][0] = -glm::dot(u, position);
     _viewMatrix[3][1] = -glm::dot(v, position);
     _viewMatrix[3][2] = -glm::dot(w, position);
+
+    _inverseViewMatrix = glm::mat4{1.f};
+    _inverseViewMatrix[0][0] = u.x;
+    _inverseViewMatrix[0][1] = u.y;
+    _inverseViewMatrix[0][2] = u.z;
+    _inverseViewMatrix[1][0] = v.x;
+    _inverseViewMatrix[1][1] = v.y;
+    _inverseViewMatrix[1][2] = v.z;
+    _inverseViewMatrix[2][0] = w.x;
+    _inverseViewMatrix[2][1] = w.y;
+    _inverseViewMatrix[2][2] = w.z;
+    _inverseViewMatrix[3][0] = position.x;
+    _inverseViewMatrix[3][1] = position.y;
+    _inverseViewMatrix[3][2] = position.z;
 }
 
 void Camera::setViewTarget(const glm::vec3& position, const glm::vec3& target, const glm::vec3& up) {
@@ -73,5 +87,20 @@ void Camera::setViewYXZ(const glm::vec3& position, const glm::vec3& rotation) {
     _viewMatrix[3][0] = -glm::dot(u, position);
     _viewMatrix[3][1] = -glm::dot(v, position);
     _viewMatrix[3][2] = -glm::dot(w, position);
+
+    _inverseViewMatrix = glm::mat4{1.f};
+    _inverseViewMatrix[0][0] = u.x;
+    _inverseViewMatrix[0][1] = u.y;
+    _inverseViewMatrix[0][2] = u.z;
+    _inverseViewMatrix[1][0] = v.x;
+    _inverseViewMatrix[1][1] = v.y;
+    _inverseViewMatrix[1][2] = v.z;
+    _inverseViewMatrix[2][0] = w.x;
+    _inverseViewMatrix[2][1] = w.y;
+    _inverseViewMatrix[2][2] = w.z;
+    _inverseViewMatrix[3][0] = position.x;
+    _inverseViewMatrix[3][1] = position.y;
+    _inverseViewMatrix[3][2] = position.z;
 }
+
 }  // namespace vge
