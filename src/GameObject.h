@@ -1,11 +1,10 @@
 #pragma once
 
-#include "Model.h"
-
 #include <glm/gtc/matrix_transform.hpp>
-
 #include <memory>
 #include <unordered_map>
+
+#include "Model.h"
 
 namespace vge {
 
@@ -18,15 +17,17 @@ struct TransformComponent {
     glm::mat3 normalMatrix() const;
 };
 
+struct PointLightComponent {
+    float lightIntensity = 1.0f;
+};
+
 class GameObject {
 public:
     using id_t = unsigned int;
     using Map = std::unordered_map<id_t, GameObject>;
 
-    static GameObject createGameObject() {
-        static id_t currentId = 0;
-        return GameObject{currentId++};
-    }
+    static GameObject createGameObject();
+    static GameObject createPointLight(float intensity = 10.0f, float radius = 0.1f, const glm::vec3& color = {1.0f, 1.0f, 1.0f});
 
     GameObject(const GameObject &) = delete;
     GameObject &operator=(const GameObject &) = delete;
@@ -38,6 +39,8 @@ public:
     std::shared_ptr<Model> model{};
     glm::vec3 color{};
     TransformComponent transform{};
+
+    std::unique_ptr<PointLightComponent> pointLight = nullptr;
 
 private:
     GameObject(id_t objId)

@@ -54,4 +54,19 @@ glm::mat3 TransformComponent::normalMatrix() const {
         },
     };
 }
+
+GameObject GameObject::createGameObject() { 
+    static id_t currentId = 0;
+    return GameObject{currentId++};
+}
+
+GameObject GameObject::createPointLight(float intensity, float radius, const glm::vec3& color) {
+    GameObject pointLight = createGameObject();
+    pointLight.color = color;
+    pointLight.transform.scale.x = radius;
+    pointLight.pointLight = std::make_unique<PointLightComponent>();
+    pointLight.pointLight->lightIntensity = intensity;
+
+    return pointLight;
+}
 }  // namespace vge
