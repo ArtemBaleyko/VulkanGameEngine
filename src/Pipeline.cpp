@@ -1,18 +1,19 @@
-#include "Model.h"
 #include "Pipeline.h"
-#include "Utils.h"
 
 #include <cassert>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
 
+#include "Model.h"
+#include "Utils.h"
+
 namespace vge {
 
 Pipeline::Pipeline(Device& device,
-                         const std::string& vertFilepath,
-                         const std::string& fragFilepath,
-                         const PipelineConfigInfo& configInfo)
+                   const std::string& vertFilepath,
+                   const std::string& fragFilepath,
+                   const PipelineConfigInfo& configInfo)
     : _device{device} {
     createGraphicsPipeline(vertFilepath, fragFilepath, configInfo);
 }
@@ -24,8 +25,8 @@ Pipeline::~Pipeline() {
 }
 
 void Pipeline::createGraphicsPipeline(const std::string& vertFilepath,
-                                         const std::string& fragFilepath,
-                                         const PipelineConfigInfo& configInfo) {
+                                      const std::string& fragFilepath,
+                                      const PipelineConfigInfo& configInfo) {
     assert(configInfo.pipelineLayout != VK_NULL_HANDLE &&
            "Cannot create graphics pipeline: no pipelineLayout provided in configInfo");
     assert(configInfo.renderPass != VK_NULL_HANDLE &&
@@ -54,8 +55,8 @@ void Pipeline::createGraphicsPipeline(const std::string& vertFilepath,
     shaderStages[1].pNext = nullptr;
     shaderStages[1].pSpecializationInfo = nullptr;
 
-    auto bindingDescriptions = Model::Vertex::getBindingDescriptions();
-    auto attributeDescriptions = Model::Vertex::getAttributeDescriptions();
+    const auto& bindingDescriptions = configInfo.bindingDescriptions;
+    const auto& attributeDescriptions = configInfo.attributeDescriptions;
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
@@ -84,7 +85,8 @@ void Pipeline::createGraphicsPipeline(const std::string& vertFilepath,
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
     if (vkCreateGraphicsPipelines(
-            _device.getVkDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &_graphicsPipeline) != VK_SUCCESS) {
+            _device.getVkDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &_graphicsPipeline) !=
+        VK_SUCCESS) {
         throw std::runtime_error("failed to create graphics pipeline");
     }
 }
@@ -172,6 +174,9 @@ void Pipeline::defaultPipelineConfigInfo(PipelineConfigInfo& configInfo) {
     configInfo.dynamicStateInfo.dynamicStateCount =
         static_cast<uint32_t>(configInfo.dynamicStateEnables.size());
     configInfo.dynamicStateInfo.flags = 0;
+
+    configInfo.bindingDescriptions = Model::Vertex::getBindingDescriptions();
+    configInfo.attributeDescriptions = Model::Vertex::getAttributeDescriptions();
 }
 
 }  // namespace vge

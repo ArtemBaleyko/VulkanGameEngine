@@ -1,36 +1,37 @@
 #include "Application.h"
 
-#include "KeyboardMovementController.h"
-#include "Camera.h"
-#include "RenderSystem.h"
 #include "Buffer.h"
+#include "Camera.h"
+#include "KeyboardMovementController.h"
+#include "systems/PointLightSystem.h"
+#include "systems/RenderSystem.h"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/glm.hpp>
-#include <glm/gtc/constants.hpp>
-
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <chrono>
+#include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
 #include <stdexcept>
-#include <algorithm>
 
 namespace vge {
 
 struct GlobalUbo {
-    glm::mat4 projectionView{1.0f};
+    glm::mat4 projection{1.0f};
+    glm::mat4 view{1.0f};
     glm::vec4 ambientLightColor{1.0f, 1.0f, 1.0f, 0.2f};
     glm::vec3 lightPosition{-1.0f};
     alignas(16) glm::vec4 lightColor{1.0f};
 };
 
-Application::Application() { 
+Application::Application() {
     _globalPool = DescriptorPool::Builder(_device)
                       .setMaxSets(SwapChain::MAX_FRAMES_IN_FLIGHT)
                       .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, SwapChain::MAX_FRAMES_IN_FLIGHT)
                       .build();
-    loadGameObjects(); 
+    loadGameObjects();
 }
 
 Application::~Application() {}
@@ -63,6 +64,10 @@ void Application::run() {
 
     RenderSystem renderSystem{
         _device, _renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
+
+    PointLightSystem pointLightSystem{
+        _device, _renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
+
     Camera camera{};
 
     auto viewerObject = GameObject::createGameObject();
@@ -75,7 +80,8 @@ void Application::run() {
         glfwPollEvents();
 
         auto newTime = std::chrono::high_resolution_clock::now();
-        auto frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
+        auto frameTime =
+            std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
         currentTime = newTime;
 
         cameraController.moveInPlaneXZ(_window.getGLFWWindow(), frameTime, viewerObject);
@@ -88,17 +94,18 @@ void Application::run() {
             int frameIndex = _renderer.getFrameIndex();
             FrameInfo frameInfo{
                 frameIndex, frameTime, commandBuffer, camera, globalDescriptorSets[frameIndex], _gameObjects};
-            
 
             GlobalUbo ubo{};
-            ubo.projectionView = camera.getProjectionViewMatrix();
+            ubo.projection = camera.getProjectionMatrix();
+            ubo.view = camera.getViewMatrix();
 
             uniformBuffers[frameIndex]->writeToBuffer(&ubo);
             uniformBuffers[frameIndex]->flush();
-            
+
             _renderer.beginSwapChainRenderPass(commandBuffer);
 
             renderSystem.renderGameObjects(frameInfo);
+            pointLightSystem.render(frameInfo);
 
             _renderer.endSwapChainRenderPass(commandBuffer);
             _renderer.endFrame();

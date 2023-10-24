@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Device.h"
-
 #include <string>
 #include <vector>
+
+#include "Device.h"
 
 namespace vge {
 
@@ -12,6 +12,8 @@ struct PipelineConfigInfo {
     PipelineConfigInfo(const PipelineConfigInfo&) = delete;
     PipelineConfigInfo& operator=(const PipelineConfigInfo&) = delete;
 
+    std::vector<VkVertexInputBindingDescription> bindingDescriptions;
+    std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
     VkPipelineViewportStateCreateInfo viewportInfo;
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
     VkPipelineRasterizationStateCreateInfo rasterizationInfo;
@@ -29,9 +31,9 @@ struct PipelineConfigInfo {
 class Pipeline {
 public:
     Pipeline(Device& device,
-                const std::string& vertFilepath,
-                const std::string& fragFilepath,
-                const PipelineConfigInfo& configInfo);
+             const std::string& vertFilepath,
+             const std::string& fragFilepath,
+             const PipelineConfigInfo& configInfo);
     ~Pipeline();
 
     Pipeline(const Pipeline&) = delete;
